@@ -50,10 +50,16 @@ IDE: IntelliJ
 
 
 GRADLE DEPENDENCIES INSTALLED:
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
-    testImplementation group: 'info.cukes', name: 'cucumber-junit', version: '1.2.5'
-    implementation group: 'info.cukes', name: 'cucumber-java', version: '1.2.5'
-    testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '4.3.3'
-    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
-    testImplementation group: 'org.testng', name: 'testng', version: '7.1.0'
+
+testImplementation group: 'junit', name: 'junit', version: '4.12'
+
+testImplementation group: 'info.cukes', name: 'cucumber-junit', version: '1.2.5'
+
+implementation group: 'info.cukes', name: 'cucumber-java', version: '1.2.5'
+
+testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '4.3.3'
+
+implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
+
+testImplementation group: 'org.testng', name: 'testng', version: '7.1.0'
     

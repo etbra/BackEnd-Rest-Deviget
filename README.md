@@ -12,10 +12,13 @@ Mars Rover Photos, etc.
 It shall test different scenarios that the API offers:
 
 -Retrieve the first 10 Mars photos made by "Curiosity" on 1000 Martian sol.
+
 -Retrieve the first 10 Mars photos made by "Curiosity" on Earth date equal 
 to 1000 Martian sol.
+
 -Retrieve and compare the first 10 Mars photos made by "Curiosity" on 1000
 sol and on Earth date equal to 1000 Martian sol.
+
 -Validate that the amounts of pictures that each "Curiosity" camera took on
 1000 Mars sol is not greater than 10 times the amount taken by other cameras 
 on the same date.
@@ -53,3 +56,4 @@ GRADLE DEPENDENCIES INSTALLED:
     testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '4.3.3'
     implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
     testImplementation group: 'org.testng', name: 'testng', version: '7.1.0'
+    

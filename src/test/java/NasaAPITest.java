@@ -10,9 +10,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
 import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.given;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -23,9 +24,12 @@ public class NasaAPITest {
     public static void suBeforeClass() {
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         baseURI = "https://api.nasa.gov";
+        //Get KEY in: https://api.nasa.gov/index.html#signUp
     }
+
     @Test
     public void AccessApi() {
+        System.out.println("AccessApi");
         String tKey = "HFs06qDVddtuKbod1oM0b5HmvVYH2aJF2PhXvLMj";
         String currentdate = LocalDate.now().toString();
 
@@ -41,7 +45,6 @@ public class NasaAPITest {
                         extract().jsonPath().get("date");
         System.out.println(date);
     }
-
     //
     // TestCase: compare: 10 first MARS-PHOTOS of CURIOSITY
     //                    when got photos from a Mars day (SOL=1000 and based on EARTH_DATE)
@@ -52,7 +55,7 @@ public class NasaAPITest {
     //
     @Test
     public void CheckCuriosityPhotosfromSolesAndEarthDateResultsAreEqual() {
-        //Get KEY in: https://api.nasa.gov/index.html#signUp
+        System.out.println("CheckCuriosityPhotosfromSolesAndEarthDateResultsAreEqual");
         String tKey = "HFs06qDVddtuKbod1oM0b5HmvVYH2aJF2PhXvLMj";
         String solDay = "1000";
         ArrayList<JsonObject> photosSol;
@@ -92,18 +95,16 @@ public class NasaAPITest {
     // TestCase: Check number of photos in Manifest record
     //                  gotten TOTAL_PHOTOS for all rovers (Curiosity, Opportunity, Spirit)
     //                  in any day chosen (SOL=1000)
-    //                  TOTAL_PHOTOS of Curiosity should be <= 10 * others (Opportunity or Spirit)
+    //                  TOTAL_PHOTOS of Curiosity should be <= 10 * others (Opportunity)
     //                  API_KEY = "HFs06qDVddtuKbod1oM0b5HmvVYH2aJF2PhXvLMj"
-    // https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=DEMO_KEY
+    //https://api.nasa.gov/mars-photos/api/v1/manifests/curiosity?api_key=DEMO_KEY
     //
-
     @Test
-    public void ReadManifestToComparePhotoNumPerDateOfRovers() {
-        //https://api.nasa.gov/mars-photos/api/v1/manifests/curiosity?api_key=DEMO_KEY
+    public void ReadManifestToComparePhotoNumPerDateOfRoversCuriosityAndOpportunity() {
+        System.out.println("ReadManifestToComparePhotoNumPerDateOfRoversCuriosityAndOpportunity");
         String tKey = "HFs06qDVddtuKbod1oM0b5HmvVYH2aJF2PhXvLMj";
-        String solDay = "1000";
-
-        String[] rovers = {"curiosity", "opportunity", "spirit"};
+        final String solDay = "1000";
+        HashMap<String, Boolean> rovers = new HashMap<>();
         HashMap<String, String> curiositySolPhotos = new HashMap<>();
         HashMap<String, String> opportunitySolPhotos = new HashMap<>();
         HashMap<String, String> spiritSolPhotos = new HashMap<>();
@@ -114,93 +115,195 @@ public class NasaAPITest {
         List <Integer> total;
         List <String> earthDate;
 
+        rovers.put("curiosity", TRUE);
+        rovers.put("opportunity", TRUE);
+        rovers.put("spirit", FALSE);
+
         String myURI3 = "/mars-photos/api/v1/manifests/";
 
-        for (String rover : rovers) {
-            Response response;
-            response = given().log().all().
-                    params("api_key", tKey).
-                    when().
-                    get(myURI3 + rover).
-                    then().
-                    statusCode(HttpStatus.SC_OK).
-                    contentType(ContentType.JSON).
-                    extract().response();
-            soles = response.jsonPath().get("photo_manifest.photos.sol");
-            total = response.jsonPath().get("photo_manifest.photos.total_photos");
-            earthDate = response.jsonPath().get("photo_manifest.photos.earth_date");
-            switch (rover) {
-                case "curiosity": {
-                    int i = 0;
-                    while (i < soles.size()) {
-                        curiositySolPhotos.put(Integer.toString(soles.get(i)), Integer.toString(total.get(i)));
-                        curiositySolDate.put(Integer.toString(soles.get(i)), earthDate.get(i));
-                        i++;
+        for (String rover : rovers.keySet()){
+            if (rovers.get(rover)) {
+                Response response;
+                response = given().log().all().
+                        params("api_key", tKey).
+                        when().
+                        get(myURI3 + rover).
+                        then().
+                        statusCode(HttpStatus.SC_OK).
+                        contentType(ContentType.JSON).
+                        extract().response();
+                soles = response.jsonPath().get("photo_manifest.photos.sol");
+                total = response.jsonPath().get("photo_manifest.photos.total_photos");
+                earthDate = response.jsonPath().get("photo_manifest.photos.earth_date");
+                switch (rover) {
+                    case "curiosity": {
+                        int i = 0;
+                        while (i < soles.size()) {
+                            curiositySolPhotos.put(Integer.toString(soles.get(i)), Integer.toString(total.get(i)));
+                            curiositySolDate.put(Integer.toString(soles.get(i)), earthDate.get(i));
+                            i++;
+                        }
+                        break;
                     }
-                    break;
-                }
-                case "opportunity": {
-                    int i = 0;
-                    while (i < soles.size()) {
-                        opportunitySolPhotos.put(Integer.toString(soles.get(i)), Integer.toString(total.get(i)));
-                        opportunityDateSol.put(earthDate.get(i), Integer.toString(soles.get(i)));
-                        i++;
+                    case "opportunity": {
+                        int i = 0;
+                        while (i < soles.size()) {
+                            opportunitySolPhotos.put(Integer.toString(soles.get(i)), Integer.toString(total.get(i)));
+                            opportunityDateSol.put(earthDate.get(i), Integer.toString(soles.get(i)));
+                            i++;
+                        }
+                        break;
                     }
-                    break;
-                }
-                case "spirit": {
-                    int i = 0;
-                    while (i < soles.size()) {
-                        spiritSolPhotos.put(Integer.toString(soles.get(i)), Integer.toString(total.get(i)));
-                        spiritDateSol.put(earthDate.get(i), Integer.toString(soles.get(i)));
-                        i++;
+                    case "spirit": {
+                        int i = 0;
+                        while (i < soles.size()) {
+                            spiritSolPhotos.put(Integer.toString(soles.get(i)), Integer.toString(total.get(i)));
+                            spiritDateSol.put(earthDate.get(i), Integer.toString(soles.get(i)));
+                            i++;
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
-        String photosfromCuri = "";
-        String photosfromOppo = "";
-        String photosfromSpir = "";
-        String datefromCuri = "";
+        String photosfromCuri;
+        String photosfromOppo;
+        String photosfromSpir;
+        String datefromCuri;
 
 
         if (!curiositySolDate.containsKey(solDay)) {
-            try {
-                throw new Exception("Curiosity does not have photos of the desired day (" + solDay + ").");
-            } catch (Exception e) {
-                e.printStackTrace();
-                assert false;
-            }
+            System.out.println("Curiosity does not have photos of Sol day (" + solDay + ").");
         } else {
             photosfromCuri = curiositySolPhotos.get(solDay);
             datefromCuri = curiositySolDate.get(solDay);
-        }
-        if (!opportunityDateSol.containsKey(datefromCuri)) {
-            try {
-                throw new Exception("Opportunity does not have photos of the desired day ("+ datefromCuri +").");
-            } catch (Exception e) {
-                e.printStackTrace();
-                assert false;
+            System.out.println("The Date of Sol day "+solDay+" is: "+datefromCuri);
+            if (rovers.get("opportunity")) {
+                if (opportunityDateSol.containsKey(datefromCuri)) {
+                    photosfromOppo = opportunitySolPhotos.get(opportunityDateSol.get(datefromCuri));
+                    assertTrue("Curiosity ("+ photosfromCuri +" photos) has more than 10 times the photos of Opportunity (" + photosfromOppo + " photos)",
+                            Integer.parseInt(photosfromCuri) <= (10 * Integer.parseInt(photosfromOppo)));
+                } else {
+                    System.out.println("Opportunity does not have photos of day (" + datefromCuri + ").");
+                }
             }
-        } else {
-            photosfromOppo = opportunitySolPhotos.get(opportunityDateSol.get(datefromCuri));
-        }
-        if (!spiritDateSol.containsKey(datefromCuri)) {
-            try {
-                throw new Exception("Spirit does not have photos of the desired day ("+ datefromCuri +").");
-            } catch (Exception e) {
-                e.printStackTrace();
-                assert false;
+            if (rovers.get("spirit")) {
+                if (spiritDateSol.containsKey(datefromCuri)) {
+                    photosfromSpir = spiritSolPhotos.get(spiritDateSol.get(datefromCuri));
+                    assertTrue("Curiosity ("+ photosfromCuri +" photos) has more than 10 times the photos of Spirit (" + photosfromSpir + " photos)",
+                            Integer.parseInt(photosfromCuri) <= (10 * Integer.parseInt(photosfromSpir)));
+                } else {
+                    System.out.println("Spirit does not have photos of day (" + datefromCuri + ").");
+                }
             }
-        } else {
-            photosfromSpir = spiritSolPhotos.get(spiritDateSol.get(datefromCuri));
         }
+    }
+    //
+    // TestCase: Check number of photos in Manifest record
+    //                  gotten TOTAL_PHOTOS for all rovers (Curiosity, Opportunity, Spirit)
+    //                  in any day chosen (SOL=1000)
+    //                  TOTAL_PHOTOS of Curiosity should be <= 10 * others (Spirit)
+    //                  API_KEY = "HFs06qDVddtuKbod1oM0b5HmvVYH2aJF2PhXvLMj"
+    //https://api.nasa.gov/mars-photos/api/v1/manifests/curiosity?api_key=DEMO_KEY
+    //
+    @Test
+    public void ReadManifestToComparePhotoNumPerDateOfRoversCuriosityAndSpirit() {
+        System.out.println("ReadManifestToComparePhotoNumPerDateOfRoversCuriosityAndSpirit");
+        String tKey = "HFs06qDVddtuKbod1oM0b5HmvVYH2aJF2PhXvLMj";
+        final String solDay = "1000";
+        HashMap<String, Boolean> rovers = new HashMap<>();
+        HashMap<String, String> curiositySolPhotos = new HashMap<>();
+        HashMap<String, String> opportunitySolPhotos = new HashMap<>();
+        HashMap<String, String> spiritSolPhotos = new HashMap<>();
+        HashMap<String, String> curiositySolDate = new HashMap<>();
+        HashMap<String, String> opportunityDateSol = new HashMap<>();
+        HashMap<String, String> spiritDateSol = new HashMap<>();
+        List <Integer> soles;
+        List <Integer> total;
+        List <String> earthDate;
 
-        assertTrue("Curiosity ("+ photosfromCuri +") has much more than the Opportunity (" + photosfromOppo + ")...",
-                Integer.parseInt(photosfromCuri) <= (10 * Integer.parseInt(photosfromOppo)));
-        assertTrue("Curiosity ("+ photosfromCuri +") has much more than the Spirit (" + photosfromSpir + ")...",
-                Integer.parseInt(photosfromCuri) <= (10 * Integer.parseInt(photosfromCuri)));
+        rovers.put("curiosity", TRUE);
+        rovers.put("opportunity", FALSE);
+        rovers.put("spirit", TRUE);
+
+        String myURI3 = "/mars-photos/api/v1/manifests/";
+
+        for (String rover : rovers.keySet()){
+            if (rovers.get(rover)) {
+                Response response;
+                response = given().log().all().
+                        params("api_key", tKey).
+                        when().
+                        get(myURI3 + rover).
+                        then().
+                        statusCode(HttpStatus.SC_OK).
+                        contentType(ContentType.JSON).
+                        extract().response();
+                soles = response.jsonPath().get("photo_manifest.photos.sol");
+                total = response.jsonPath().get("photo_manifest.photos.total_photos");
+                earthDate = response.jsonPath().get("photo_manifest.photos.earth_date");
+                switch (rover) {
+                    case "curiosity": {
+                        int i = 0;
+                        while (i < soles.size()) {
+                            curiositySolPhotos.put(Integer.toString(soles.get(i)), Integer.toString(total.get(i)));
+                            curiositySolDate.put(Integer.toString(soles.get(i)), earthDate.get(i));
+                            i++;
+                        }
+                        break;
+                    }
+                    case "opportunity": {
+                        int i = 0;
+                        while (i < soles.size()) {
+                            opportunitySolPhotos.put(Integer.toString(soles.get(i)), Integer.toString(total.get(i)));
+                            opportunityDateSol.put(earthDate.get(i), Integer.toString(soles.get(i)));
+                            i++;
+                        }
+                        break;
+                    }
+                    case "spirit": {
+                        int i = 0;
+                        while (i < soles.size()) {
+                            spiritSolPhotos.put(Integer.toString(soles.get(i)), Integer.toString(total.get(i)));
+                            spiritDateSol.put(earthDate.get(i), Integer.toString(soles.get(i)));
+                            i++;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        String photosfromCuri;
+        String photosfromOppo;
+        String photosfromSpir;
+        String datefromCuri;
+
+
+        if (!curiositySolDate.containsKey(solDay)) {
+            System.out.println("Curiosity does not have photos of Sol day (" + solDay + ").");
+        } else {
+            photosfromCuri = curiositySolPhotos.get(solDay);
+            datefromCuri = curiositySolDate.get(solDay);
+            System.out.println("The Date of Sol day "+solDay+" is: "+datefromCuri);
+            if (rovers.get("opportunity")) {
+                if (opportunityDateSol.containsKey(datefromCuri)) {
+                    photosfromOppo = opportunitySolPhotos.get(opportunityDateSol.get(datefromCuri));
+                    assertTrue("Curiosity ("+ photosfromCuri +" photos) has more than 10 times the photos of Opportunity (" + photosfromOppo + " photos)",
+                            Integer.parseInt(photosfromCuri) <= (10 * Integer.parseInt(photosfromOppo)));
+                } else {
+                    System.out.println("Opportunity does not have photos of day (" + datefromCuri + ").");
+                }
+            }
+            if (rovers.get("spirit")) {
+                if (spiritDateSol.containsKey(datefromCuri)) {
+                    photosfromSpir = spiritSolPhotos.get(spiritDateSol.get(datefromCuri));
+                    assertTrue("Curiosity ("+ photosfromCuri +" photos) has more than 10 times the photos of Spirit (" + photosfromSpir + " photos)",
+                            Integer.parseInt(photosfromCuri) <= (10 * Integer.parseInt(photosfromSpir)));
+                } else {
+                    System.out.println("Spirit does not have photos of day (" + datefromCuri + ").");
+                }
+            }
+        }
     }
 }
 

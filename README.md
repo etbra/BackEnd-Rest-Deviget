@@ -29,7 +29,8 @@ PROJECT: Configuracao
 Test Class: NasaAPITest.class
 	TC1: public void AccessApi()
 	TC2: public void CheckCuriosityPhotosfromSolesAndEarthDateResultsAreEqual()
-	TC3: public void ReadManifestToComparePhotoNumPerDateOfRovers()
+	TC3: public void ReadManifestToComparePhotoNumPerDateOfRoversCuriosityAndOpportunity()
+	TC4: public void ReadManifestToComparePhotoNumPerDateOfRoversCuriosityAndSpirit()
 
 OBS: TC1 do not implemente the required tests
 
@@ -59,7 +60,4 @@ implementation group: 'info.cukes', name: 'cucumber-java', version: '1.2.5'
 
 testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '4.3.3'
 
-implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
-
-testImplementation group: 'org.testng', name: 'testng', version: '7.1.0'
-    
+implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'    
